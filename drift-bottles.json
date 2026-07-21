@@ -25,5 +25,14 @@
     "picked": false,
     "pickedBy": null,
     "pickedAt": null
+  },
+  {
+    "id": "bottle_1784649340677_yysszmk4k",
+    "userId": "user_1784458813823_3ocfk8c69",
+    "message": "12345",
+    "createdAt": "2026-07-21T15:55:40.677Z",
+    "picked": false,
+    "pickedBy": null,
+    "pickedAt": null
   }
 ]
