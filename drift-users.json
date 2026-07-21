@@ -2,7 +2,7 @@
   {
     "id": "user_1784424079939_h3k6pk15q",
     "name": "游客9977",
-    "thrown": 7,
+    "thrown": 8,
     "picked": 45,
     "history": [
       {
@@ -264,6 +264,11 @@
         "type": "throw",
         "bottleId": "bottle_1784457342345_s0fcxq5kl",
         "timestamp": "2026-07-19T10:35:42.346Z"
+      },
+      {
+        "type": "throw",
+        "bottleId": "bottle_1784649098237_bt2zf7869",
+        "timestamp": "2026-07-21T15:51:38.237Z"
       }
     ]
   }
