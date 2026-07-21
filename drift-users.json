@@ -276,12 +276,27 @@
     "id": "user_1784458813823_3ocfk8c69",
     "name": "游客9263",
     "thrown": 1,
-    "picked": 0,
+    "picked": 3,
     "history": [
       {
         "type": "throw",
         "bottleId": "bottle_1784649340677_yysszmk4k",
         "timestamp": "2026-07-21T15:55:40.690Z"
+      },
+      {
+        "type": "pick",
+        "bottleId": "bottle_initial_1",
+        "timestamp": "2026-07-21T15:55:46.641Z"
+      },
+      {
+        "type": "pick",
+        "bottleId": "bottle_initial_3",
+        "timestamp": "2026-07-21T15:55:49.168Z"
+      },
+      {
+        "type": "pick",
+        "bottleId": "bottle_initial_2",
+        "timestamp": "2026-07-21T15:55:51.712Z"
       }
     ]
   }
