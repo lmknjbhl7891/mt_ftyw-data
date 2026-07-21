@@ -275,8 +275,14 @@
   {
     "id": "user_1784458813823_3ocfk8c69",
     "name": "游客9263",
-    "thrown": 0,
+    "thrown": 1,
     "picked": 0,
-    "history": []
+    "history": [
+      {
+        "type": "throw",
+        "bottleId": "bottle_1784649340677_yysszmk4k",
+        "timestamp": "2026-07-21T15:55:40.690Z"
+      }
+    ]
   }
 ]
