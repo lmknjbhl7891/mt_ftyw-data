@@ -2,8 +2,8 @@
   {
     "id": "user_1784424079939_h3k6pk15q",
     "name": "游客9977",
-    "thrown": 8,
-    "picked": 45,
+    "thrown": 2,
+    "picked": 52,
     "history": [
       {
         "type": "throw",
@@ -192,111 +192,88 @@
       },
       {
         "type": "pick",
-        "bottleId": "bottle_1783680998351_saie5po83",
-        "timestamp": "2026-07-19T03:42:21.101Z"
+        "bottleId": "bottle_1783466550311_sk66wfhvt",
+        "timestamp": "2026-07-21T16:01:56.641Z"
       },
       {
         "type": "pick",
-        "bottleId": "bottle_1784169785053_ihcaz9j5s",
-        "timestamp": "2026-07-19T03:42:23.526Z"
+        "bottleId": "bottle_1784287475665_vd0vfe8r0",
+        "timestamp": "2026-07-21T16:02:00.089Z"
       },
       {
         "type": "pick",
-        "bottleId": "bottle_1783481247578_g5qsw0bkg",
-        "timestamp": "2026-07-19T03:42:26.096Z"
+        "bottleId": "bottle_1783565660853_klzuht3fk",
+        "timestamp": "2026-07-21T16:02:02.696Z"
       },
       {
         "type": "pick",
-        "bottleId": "bottle_1783647187066_vu78p1ikn",
-        "timestamp": "2026-07-19T03:42:32.923Z"
+        "bottleId": "bottle_1784276348756_5gq4upryq",
+        "timestamp": "2026-07-21T16:02:04.357Z"
       },
       {
         "type": "pick",
-        "bottleId": "bottle_1784168575331_e18218fg3",
-        "timestamp": "2026-07-19T03:42:35.061Z"
+        "bottleId": "bottle_1784130974548_6dhuxktkw",
+        "timestamp": "2026-07-21T16:02:05.928Z"
       },
       {
         "type": "pick",
-        "bottleId": "bottle_1783865996600_laxs7sg1v",
-        "timestamp": "2026-07-19T03:42:37.286Z"
+        "bottleId": "bottle_1783662305326_ni3f16lvq",
+        "timestamp": "2026-07-21T16:02:07.531Z"
       },
       {
         "type": "pick",
-        "bottleId": "bottle_1783741180225_eptreu2s2",
-        "timestamp": "2026-07-19T03:42:39.327Z"
+        "bottleId": "bottle_1783534351420_7pkivlft8",
+        "timestamp": "2026-07-21T16:02:09.247Z"
       },
       {
         "type": "pick",
-        "bottleId": "bottle_1783776422672_tf58w0y14",
-        "timestamp": "2026-07-19T03:42:41.677Z"
+        "bottleId": "bottle_1784274883235_dunfjlx7p",
+        "timestamp": "2026-07-21T16:02:10.882Z"
       },
       {
         "type": "pick",
-        "bottleId": "bottle_1783429082024_pke6ml05r",
-        "timestamp": "2026-07-19T03:42:43.489Z"
+        "bottleId": "bottle_1784536402959_ugz0nptkz",
+        "timestamp": "2026-07-21T16:02:13.145Z"
       },
       {
         "type": "pick",
-        "bottleId": "bottle_1784187801299_g4cp5uve7",
-        "timestamp": "2026-07-19T03:42:45.584Z"
-      },
-      {
-        "type": "throw",
-        "bottleId": "bottle_1784436108626_1tpbe6nw9",
-        "timestamp": "2026-07-19T04:41:48.627Z"
-      },
-      {
-        "type": "throw",
-        "bottleId": "bottle_1784437305578_hrzmu06q2",
-        "timestamp": "2026-07-19T05:01:45.578Z"
-      },
-      {
-        "type": "throw",
-        "bottleId": "bottle_1784450957900_i5wz0ut1v",
-        "timestamp": "2026-07-19T08:49:17.908Z"
-      },
-      {
-        "type": "throw",
-        "bottleId": "bottle_1784457305441_69vuh4w0v",
-        "timestamp": "2026-07-19T10:35:05.441Z"
-      },
-      {
-        "type": "throw",
-        "bottleId": "bottle_1784457342345_s0fcxq5kl",
-        "timestamp": "2026-07-19T10:35:42.346Z"
-      },
-      {
-        "type": "throw",
-        "bottleId": "bottle_1784649098237_bt2zf7869",
-        "timestamp": "2026-07-21T15:51:38.237Z"
-      }
-    ]
-  },
-  {
-    "id": "user_1784458813823_3ocfk8c69",
-    "name": "游客9263",
-    "thrown": 1,
-    "picked": 3,
-    "history": [
-      {
-        "type": "throw",
-        "bottleId": "bottle_1784649340677_yysszmk4k",
-        "timestamp": "2026-07-21T15:55:40.690Z"
+        "bottleId": "bottle_1783642756201_pd1d9lit6",
+        "timestamp": "2026-07-21T16:02:14.793Z"
       },
       {
         "type": "pick",
-        "bottleId": "bottle_initial_1",
-        "timestamp": "2026-07-21T15:55:46.641Z"
+        "bottleId": "bottle_1784516166272_mlpb903ez",
+        "timestamp": "2026-07-21T16:02:16.426Z"
       },
       {
         "type": "pick",
-        "bottleId": "bottle_initial_3",
-        "timestamp": "2026-07-21T15:55:49.168Z"
+        "bottleId": "bottle_1783748502822_p1c29pjne",
+        "timestamp": "2026-07-21T16:02:18.070Z"
       },
       {
         "type": "pick",
-        "bottleId": "bottle_initial_2",
-        "timestamp": "2026-07-21T15:55:51.712Z"
+        "bottleId": "bottle_1784072930811_e8i0vv27v",
+        "timestamp": "2026-07-21T16:02:19.636Z"
+      },
+      {
+        "type": "pick",
+        "bottleId": "bottle_1783743750277_gcsnyf6m1",
+        "timestamp": "2026-07-21T16:02:21.764Z"
+      },
+      {
+        "type": "pick",
+        "bottleId": "bottle_1783514234550_ds60rqwmj",
+        "timestamp": "2026-07-21T16:02:23.268Z"
+      },
+      {
+        "type": "pick",
+        "bottleId": "bottle_1784256395522_rx87v4d6h",
+        "timestamp": "2026-07-21T16:02:24.729Z"
+      },
+      {
+        "type": "pick",
+        "bottleId": "bottle_1783477401867_wigm5n9or",
+        "timestamp": "2026-07-21T16:03:39.816Z"
       }
     ]
   }
