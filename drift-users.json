@@ -290,8 +290,39 @@
   {
     "id": "user_1784728249940_w2ytecfju",
     "name": "游客3547",
-    "thrown": 0,
-    "picked": 0,
-    "history": []
+    "thrown": 1,
+    "picked": 5,
+    "history": [
+      {
+        "type": "pick",
+        "bottleId": "bottle_initial_1",
+        "timestamp": "2026-07-22T13:51:00.513Z"
+      },
+      {
+        "type": "pick",
+        "bottleId": "bottle_1784713516865_leesj3mms",
+        "timestamp": "2026-07-22T13:51:05.029Z"
+      },
+      {
+        "type": "pick",
+        "bottleId": "bottle_1784710755193_e8sih64fl",
+        "timestamp": "2026-07-22T13:51:10.737Z"
+      },
+      {
+        "type": "pick",
+        "bottleId": "bottle_initial_2",
+        "timestamp": "2026-07-22T13:51:12.978Z"
+      },
+      {
+        "type": "pick",
+        "bottleId": "bottle_initial_3",
+        "timestamp": "2026-07-22T13:51:14.975Z"
+      },
+      {
+        "type": "throw",
+        "bottleId": "bottle_1784728285859_xenpv597e",
+        "timestamp": "2026-07-22T13:51:25.864Z"
+      }
+    ]
   }
 ]
