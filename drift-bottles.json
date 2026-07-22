@@ -34,5 +34,14 @@
     "picked": false,
     "pickedBy": null,
     "pickedAt": null
+  },
+  {
+    "id": "bottle_1784713516865_leesj3mms",
+    "userId": "user_1784424079939_h3k6pk15q",
+    "message": "这是一条测试的",
+    "createdAt": "2026-07-22T09:45:16.865Z",
+    "picked": false,
+    "pickedBy": null,
+    "pickedAt": null
   }
 ]
