@@ -1,0 +1,1121 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes, viewport-fit=cover">
+    <title>漂流瓶</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        button,
+        .btn-throw,
+        .btn-pick,
+        .btn-send,
+        .close-modal {
+            outline: none !important;
+            -webkit-tap-highlight-color: transparent !important;
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;
+            user-select: none;
+        }
+
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background: #f5f5f5; color: #333; min-height: 100vh; display: flex; flex-direction: column; }
+        .container { max-width: 1200px; margin: 20px auto; padding: 0 20px; flex: 1; width: 100%; }
+        .view { display: none; }
+        .view.active { display: block; }
+
+        .spinner { display: inline-block; width: 20px; height: 20px; border: 3px solid rgba(0,0,0,0.1); border-radius: 50%; border-top-color: #e02f2f; animation: spin 0.8s linear infinite; margin-right: 6px; vertical-align: middle; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .loading-container { display: flex; justify-content: center; align-items: center; gap: 8px; padding: 30px; color: #999; font-size: 1rem; }
+        .btn-loading { pointer-events: none; opacity: 0.7; position: relative; }
+        .btn-loading .btn-text { visibility: hidden; }
+        .btn-loading::after { content: ''; position: absolute; width: 20px; height: 20px; border: 3px solid rgba(255,255,255,0.3); border-top-color: white; border-radius: 50%; animation: spin 0.8s linear infinite; top: calc(50% - 10px); left: calc(50% - 10px); }
+
+        .bottle-container {
+            text-align: center;
+            margin: 40px 0;
+        }
+        .bottle-image {
+            width: 180px;
+            height: 240px;
+            margin: 0 auto;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .bottle-image:hover {
+            transform: scale(1.05);
+        }
+        .bottle-image:active {
+            transform: scale(0.95);
+        }
+        .bottle-message {
+            background: white;
+            border-radius: 20px;
+            padding: 20px;
+            margin: 20px 0;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+            min-height: 150px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            font-size: 1.1rem;
+            line-height: 1.5;
+        }
+        .message-input {
+            width: 100%;
+            min-height: 150px;
+            padding: 16px;
+            border: 1px solid #ddd;
+            border-radius: 20px;
+            font-size: 1rem;
+            resize: vertical;
+            font-family: inherit;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+        .message-input:focus {
+            border-color: #e02f2f;
+        }
+        .message-input::placeholder {
+            color: #999;
+        }
+        .button-group {
+            display: flex;
+            gap: 12px;
+            margin-top: 20px;
+        }
+        .btn-throw,
+        .btn-pick {
+            flex: 1;
+            background: #e02f2f;
+            color: white;
+            border: none;
+            padding: 14px 0;
+            border-radius: 44px;
+            font-weight: 600;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-align: center;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+        }
+        .btn-throw:active,
+        .btn-pick:active {
+            transform: scale(0.98);
+            background: #b22222;
+        }
+        .btn-throw:disabled,
+        .btn-pick:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+        .btn-pick {
+            background: #4caf50;
+        }
+        .btn-pick:active {
+            background: #388e3c;
+        }
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #999;
+        }
+        .empty-state .emoji {
+            font-size: 3rem;
+            margin-bottom: 16px;
+        }
+        .empty-state .message {
+            font-size: 1.1rem;
+            margin-bottom: 8px;
+        }
+        .empty-state .hint {
+            font-size: 0.9rem;
+        }
+        .stats-container {
+            background: white;
+            border-radius: 20px;
+            padding: 16px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+        }
+        .stats-title {
+            font-size: 1rem;
+            font-weight: 600;
+            margin-bottom: 12px;
+            color: #e02f2f;
+        }
+        .stats-item {
+            display: flex;
+            justify-content: space-between;
+            margin: 8px 0;
+            font-size: 0.9rem;
+        }
+        .stats-value {
+            font-weight: 600;
+            color: #333;
+        }
+
+        .modal { display: flex; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0); z-index: 2000; justify-content: center; align-items: center; opacity: 0; visibility: hidden; transition: opacity 0.35s ease, visibility 0.35s ease, background-color 0.35s ease; pointer-events: none; }
+        .modal.show { opacity: 1; visibility: visible; background-color: rgba(0,0,0,0.5); pointer-events: auto; }
+        .modal-content { background: white; width: 90%; max-width: 500px; border-radius: 24px; padding: 24px; max-height: 85vh; overflow-y: auto; -webkit-overflow-scrolling: touch; }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #eee; padding-bottom: 12px; margin-bottom: 16px; }
+        .modal-header h3 { font-size: 1.2rem; }
+        .close-modal { background: none; border: none; font-size: 1.8rem; cursor: pointer; line-height: 1; }
+
+        .modal .modal-content {
+            transform: scale(0.9);
+            opacity: 0;
+            transition: transform 0.35s cubic-bezier(0.2, 0.9, 0.4, 1.1), opacity 0.3s ease;
+        }
+        .modal.show .modal-content {
+            transform: scale(1);
+            opacity: 1;
+        }
+
+        .custom-alert {
+            text-align: center;
+            padding: 20px 0;
+        }
+        .custom-alert .emoji {
+            font-size: 3rem;
+            margin-bottom: 16px;
+        }
+        .custom-alert .message {
+            font-size: 1.1rem;
+            margin-bottom: 20px;
+        }
+
+        .record-float-btn {
+            position: fixed;
+            right: 20px;
+            bottom: 20px;
+            width: 56px;
+            height: 56px;
+            background: #e02f2f;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            box-shadow: 0 4px 12px rgba(224, 47, 47, 0.4);
+            cursor: pointer;
+            z-index: 999;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .record-float-btn:active {
+            transform: scale(0.9);
+            box-shadow: 0 2px 6px rgba(224, 47, 47, 0.3);
+        }
+
+        @media screen and (max-width: 600px) {
+            .container { padding-left: 16px; padding-right: 16px; margin-top: 10px; }
+            .modal-content { padding: 16px; width: 92%; }
+            .bottle-image { width: 140px; height: 180px; }
+            .bottle-message { padding: 16px; font-size: 1rem; }
+            .message-input { min-height: 120px; padding: 12px; }
+            .button-group { flex-direction: column; }
+            .btn-throw,
+            .btn-pick {
+                padding: 12px 0;
+                font-size: 0.9rem;
+            }
+        }
+    </style>
+</head>
+<body>
+<div id="mainApp">
+    <div class="container">
+        <div id="homeView" class="view active">
+            <div class="bottle-container">
+                <img src="piaoliuping1.png" alt="漂流瓶" class="bottle-image" id="bottleImage">
+            </div>
+            <div class="bottle-message" id="bottleMessage">
+                <p>点击漂流瓶开始探索...</p>
+            </div>
+            <div class="button-group">
+                <button class="btn-throw" id="btnThrow">📝 写漂流瓶</button>
+                <button class="btn-pick" id="btnPick">🎣 捞漂流瓶</button>
+            </div>
+            <div class="stats-container">
+                <div class="stats-title">📊 漂流瓶统计</div>
+                <div class="stats-item">
+                    <span>总漂流瓶数：</span>
+                    <span class="stats-value" id="totalBottles">获取中</span>
+                </div>
+                <div class="stats-item">
+                    <span>我的漂流瓶：</span>
+                    <span class="stats-value" id="myBottles">获取中</span>
+                </div>
+                <div class="stats-item" style="border-top:1px solid #eee;padding-top:8px;margin-top:4px;">
+                    <span>📝 今日可扔：</span>
+                    <span class="stats-value" id="dailyThrow" style="color:#e02f2f;">5</span>
+                </div>
+                <div class="stats-item">
+                    <span>🎣 今日可捞：</span>
+                    <span class="stats-value" id="dailyPick" style="color:#4caf50;">100</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 右下角记录小圆球 -->
+    <div class="record-float-btn" id="recordFloatBtn">📋</div>
+
+    <!-- 记录弹窗 -->
+    <div class="modal" id="recordModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>📋 漂流瓶记录</h3>
+                <button class="close-modal" id="closeRecordModal">&times;</button>
+            </div>
+            <div id="recordList" class="empty-state">
+                <div class="emoji">📝</div>
+                <div class="message">暂无记录</div>
+                <div class="hint">开始写漂流瓶或捞漂流瓶吧</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 写漂流瓶弹窗 -->
+    <div class="modal" id="throwModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>📝 写漂流瓶</h3>
+                <button class="close-modal" id="closeThrowModal">&times;</button>
+            </div>
+            <textarea class="message-input" id="messageInput" placeholder="写下你的心情、故事或愿望...
+
+漂流瓶会被陌生人收到哦！" maxlength="500"></textarea>
+            <div class="button-group">
+                <button class="btn-throw" id="submitThrowBtn">🚀 扔出漂流瓶</button>
+                <button class="btn-pick" id="cancelThrowBtn">取消</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 捞漂流瓶弹窗 -->
+    <div class="modal" id="pickModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>🎣 捞漂流瓶</h3>
+                <button class="close-modal" id="closePickModal">&times;</button>
+            </div>
+            <div id="pickContent" class="loading-container">
+                <span class="spinner"></span>
+                <span>正在捞取漂流瓶...</span>
+            </div>
+            <div class="button-group" style="display: none;" id="pickButtons">
+                <button class="btn-pick" id="pickAnotherBtn">🎣 再捞一个</button>
+                <button class="btn-throw" id="closePickBtn">关闭</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 自定义弹窗 -->
+    <div class="modal" id="customAlertModal">
+        <div class="modal-content" style="max-width: 400px; text-align: center;">
+            <div class="modal-header">
+                <h3 id="alertTitle">提示</h3>
+                <button class="close-modal" id="closeAlertModal">&times;</button>
+            </div>
+            <div class="custom-alert">
+                <div class="emoji" id="alertEmoji">🎉</div>
+                <div class="message" id="alertMessage"></div>
+            </div>
+            <div class="modal-footer" style="justify-content: center;">
+                <button class="btn-throw" id="alertConfirmBtn" style="flex: none; min-width: 120px;">确定</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    (function(){
+        const CONFIG = {
+            owner: 'lmknjbhl7891',
+            repo: 'mt_ftyw-data',
+            branch: 'main',
+            token: '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',
+            bottlesPath: 'drift-bottles.json',
+            usersPath: 'drift-users.json'
+        };
+
+        let bottles = [];
+        let users = [];
+        let currentUser = null;
+        let userStats = {
+            thrown: 0,
+            picked: 0
+        };
+
+        // 每日限制
+        const DAILY_LIMIT = { throw: 5, pick: 100 };
+        function getDailyKey() { const d = new Date(); return d.getFullYear()+'-'+(d.getMonth()+1)+'-'+d.getDate(); }
+        function getDailyUsage() { const k = getDailyKey(); const data = JSON.parse(localStorage.getItem('drift_daily')||'{}'); return data[k]||{throw:0,pick:0}; }
+        function incDaily(type) { const k = getDailyKey(); const data = JSON.parse(localStorage.getItem('drift_daily')||'{}'); if(!data[k]) data[k]={throw:0,pick:0}; data[k][type]++; localStorage.setItem('drift_daily',JSON.stringify(data)); }
+        function dailyRemaining(type) { const u = getDailyUsage(); return DAILY_LIMIT[type] - (u[type]||0); }
+
+        // DOM 元素
+        const homeView = document.getElementById('homeView');
+        const bottleImage = document.getElementById('bottleImage');
+        const bottleMessage = document.getElementById('bottleMessage');
+        const btnThrow = document.getElementById('btnThrow');
+        const btnPick = document.getElementById('btnPick');
+        const totalBottles = document.getElementById('totalBottles');
+        const myBottles = document.getElementById('myBottles');
+        const dailyThrow = document.getElementById('dailyThrow');
+        const dailyPick = document.getElementById('dailyPick');
+        const recordFloatBtn = document.getElementById('recordFloatBtn');
+        const recordModal = document.getElementById('recordModal');
+        const closeRecordModal = document.getElementById('closeRecordModal');
+        const recordList = document.getElementById('recordList');
+
+        // 弹窗元素
+        const throwModal = document.getElementById('throwModal');
+        const closeThrowModal = document.getElementById('closeThrowModal');
+        const messageInput = document.getElementById('messageInput');
+        const submitThrowBtn = document.getElementById('submitThrowBtn');
+        const cancelThrowBtn = document.getElementById('cancelThrowBtn');
+
+        const pickModal = document.getElementById('pickModal');
+        const closePickModal = document.getElementById('closePickModal');
+        const pickContent = document.getElementById('pickContent');
+        const pickButtons = document.getElementById('pickButtons');
+        const pickAnotherBtn = document.getElementById('pickAnotherBtn');
+        const closePickBtn = document.getElementById('closePickBtn');
+
+        const customAlertModal = document.getElementById('customAlertModal');
+        const alertTitle = document.getElementById('alertTitle');
+        const alertEmoji = document.getElementById('alertEmoji');
+        const alertMessage = document.getElementById('alertMessage');
+        const alertConfirmBtn = document.getElementById('alertConfirmBtn');
+        const closeAlertModal = document.getElementById('closeAlertModal');
+
+        function escapeHtml(unsafe) { return unsafe.replace(/[&<>]/g, function(m) { if(m==='&') return '&amp;'; if(m==='<') return '&lt;'; if(m==='>') return '&gt;'; return m; }); }
+        function setButtonLoading(button, isLoading) { if(!button) return; if(isLoading) { button.disabled=true; button.classList.add('btn-loading'); button.dataset.originalText=button.innerText; button.innerText=''; } else { button.disabled=false; button.classList.remove('btn-loading'); if(button.dataset.originalText) button.innerText=button.dataset.originalText; } }
+
+        // 脏话/敏感词检测 - 大幅增强版
+        const PROFANITY_WORDS = [
+            '傻逼', '煞笔', '傻比', '沙比', '沙壁', '洒逼', '莎比', '砂比', '儍逼', '傻屄', '煞屄',
+            '二逼', '二b', '2b', '2逼', '二货', '2货',
+            '脑残', '弱智', '智障', '智障儿', '废物', '废柴', '低能', '低能儿', '变态', '神经病', '脑瘫',
+            '妈的', '妈逼', '妈b', '妈屄', '草泥马', '操你妈', '草你妈', '日你妈', '日了狗', '狗日的', '他妈的', '她妈的', '你妈的', '你妈逼', '你妈b', '你妈屄',
+            '滚蛋', '滚开', '死全家', '去死', '该死', '王八蛋', '狗东西', '狗娘养', '狗娘养的', '狗逼', '狗屄', '畜生', '禽兽', '禽兽不如', '混蛋', '混球', '龟孙', '龟儿子',
+            '婊子', '贱人', '贱逼', '贱屄', '婊砸', '骚货', '破鞋', '表子', '表砸', '浪货', '烂货', '鸡婆', '野鸡',
+            '鸡巴', '鸡吧', 'jb', '鸡扒', '鸡八', '鸡掰', '妓女', '嫖娼', '约炮', '裸聊', '情色', '色情', '卖淫', '打炮', '炮友', '搞破鞋',
+            'nmsl', 'cnm', 'nmd', 'rnm', 'tmd', 'mlgb', 'wtmsl', 'sb', 'nn', 'nc', 'rsg', 'wcnm', 'wnm', 'smd', 'smn', 'sjb', 'sbj',
+            'sabi', 'shabi', 'sha bi', 's a b i', 'sh a bi',
+            'nima', 'ni ma', 'nim a', 'nimama', 'ni mama',
+            'ta ma de', 'tamade', 'tmde',
+            'cao ni ma', 'caonima', 'caonm', 'c a o n i m a', 'cnima', 'conima',
+            'fuck', 'shit', 'bitch', 'asshole', 'bastard', 'cunt', 'dick', 'pussy', 'damn', 'fck', 'fuk',
+            'fk', 'fxxk', 'sht', 'btch', 'stfu', 'gtfo', 'kys', 'sh1t', 'f0ck', '8itch', '4ss', '5hit', '7hit', 'b1tch', 'fuq',
+            'fvck', 'fuxk', 'fucc', 'fukk', 'shitt', 'sh1tt', 'b!tch', 'c0ck', 'c0nt', 'd1ck', 'p0ssy', 'pussie',
+            'son of bitch', 'sonofabitch', 'motherfucker', 'mothafucker', 'mofo',
+            'dickhead', 'shithead',
+            'piss off', 'pissoff', 'screw you', 'screwyou',
+            'f u c k', 'f-u-c-k', 'f.u.c.k', 's h i t', 's-h-i-t', 's.h.i.t',
+            'bullshit', 'holyshit',
+            '去死吧', '赶紧死', '早点死', '死远点', '滚远点', '滚出', '给我滚', '你滚', '给我去死',
+            '杀了你', '弄死你', '打死你', '砍死你', '捅死你', '烧死你', '淹死你', '活埋你',
+            '吃屎', '吃大便', '喝尿', '吃屁', '舔屁眼', '舔肛', '肛交', '口交', '性交',
+            '自慰', '手淫', '撸管', '打飞机', '吹箫', '口活', '舔逼', '舔屄', '操逼', '操屄', '干逼', '干屄',
+            '插逼', '插屄', '日逼', '日屄', '搞逼', '搞屄', '草逼', '草屄', '操你', '干你', '日你', '草你',
+            '卖逼', '卖屄', '逼货', '屄货', '逼养', '屄养', '逼崽子', '屄崽子',
+            '5b', '5逼', 's2b',
+            '他娘的', '她娘的', '你娘的', '娘的', '娘逼', '娘b', '娘屄',
+            '王八羔子', '龟孙子', '龟孙儿',
+            '狗操的', '狗养的', '狗生的', '狗崽子',
+            '驴日的', '驴操的', '驴养的', '驴崽子',
+            '猪狗不如',
+            '杂种', '杂碎',
+            '婊子养的', '婊子生的',
+            '贱婢', '贱格', '贱骨头', '贱胚子',
+            '骚浪货', '骚狐狸精',
+            '烂骨头', '烂胚子',
+            '浪荡货', '浪荡逼',
+            '臭不要脸',
+            '无耻之徒', '无耻小人',
+            '卑鄙小人', '卑鄙无耻',
+            '下流胚', '下流货',
+            '龌龊',
+            '恶心死人',
+            '暴打你', '狠揍你', '痛扁你',
+            '折磨你', '虐待你', '摧残你', '蹂躏你',
+            '诅咒你', '咒你死', '咒你全家死', '咒你不得好死',
+            '祝你死', '祝你早死', '祝你全家死',
+            '希望你死', '希望你全家死',
+            '巴不得你死', '巴不得你全家死',
+            '你他妈的', '你他娘的',
+            '去你妈的', '去你娘的',
+            '你妈的逼', '你妈的b', '你妈的屄', '你娘的逼', '你娘的b', '你娘的屄',
+            '他妈的逼', '他妈的b', '他妈的屄', '他娘的逼', '他娘的b', '他娘的屄',
+            '她妈的逼', '她妈的b', '她妈的屄', '她娘的逼', '她娘的b', '她娘的屄',
+            '你妈死了', '你娘死了', '你奶奶死了', '你姥姥死了',
+            '你全家死了', '你全家都死了', '你全家去死',
+            '你爸死了', '你妈死了', '你哥死了', '你姐死了', '你弟死了', '你妹死了',
+            '你儿子死了', '你女儿死了', '你孙子死了', '你孙女死了',
+            '你祖宗死了', '你祖宗十八代死了',
+            '你活该', '你活该去死', '你活该不得好死',
+            '你罪有应得', '你罪该万死', '你死有余辜',
+            '你烂透了', '你烂得没救了',
+            '你无可救药', '你无药可救', '你完蛋了',
+            '你死定了', '你死翘翘了'
+        ];
+
+        // 同形字映射（西里尔字母/希腊字母等→拉丁字母）
+        const HOMOGLYPH_MAP = {
+            'а': 'a', 'б': 'b', 'в': 'v', 'г': 'g', 'д': 'd', 'е': 'e', 'ё': 'e', 'ж': 'zh', 'з': 'z', 'и': 'i',
+            'й': 'y', 'к': 'k', 'л': 'l', 'м': 'm', 'н': 'n', 'о': 'o', 'п': 'p', 'р': 'r', 'с': 's', 'т': 't',
+            'у': 'u', 'ф': 'f', 'х': 'kh', 'ц': 'ts', 'ч': 'ch', 'ш': 'sh', 'щ': 'shch', 'ъ': '', 'ы': 'y',
+            'ь': '', 'э': 'e', 'ю': 'yu', 'я': 'ya',
+            'Α': 'a', 'Β': 'b', 'Γ': 'g', 'Δ': 'd', 'Ε': 'e', 'Ζ': 'z', 'Η': 'h', 'Θ': 'th', 'Ι': 'i', 'Κ': 'k',
+            'Λ': 'l', 'Μ': 'm', 'Ν': 'n', 'Ξ': 'x', 'Ο': 'o', 'Π': 'p', 'Ρ': 'r', 'Σ': 's', 'Τ': 't', 'Υ': 'u',
+            'Φ': 'f', 'Χ': 'kh', 'Ψ': 'ps', 'Ω': 'o',
+            'а': 'a', 'б': 'b', 'в': 'v', 'г': 'g', 'д': 'd', 'е': 'e', 'ζ': 'z', 'η': 'h', 'θ': 'th', 'ι': 'i',
+            'κ': 'k', 'λ': 'l', 'μ': 'm', 'ν': 'n', 'ξ': 'x', 'ο': 'o', 'π': 'p', 'ρ': 'r', 'σ': 's', 'τ': 't',
+            'υ': 'u', 'φ': 'f', 'χ': 'kh', 'ψ': 'ps', 'ω': 'o',
+            'ⓐ': 'a', 'ⓑ': 'b', 'ⓒ': 'c', 'ⓓ': 'd', 'ⓔ': 'e', 'ⓕ': 'f', 'ⓖ': 'g', 'ⓗ': 'h', 'ⓘ': 'i', 'ⓙ': 'j',
+            'ⓚ': 'k', 'ⓛ': 'l', 'ⓜ': 'm', 'ⓝ': 'n', 'ⓞ': 'o', 'ⓟ': 'p', 'ⓠ': 'q', 'ⓡ': 'r', 'ⓢ': 's', 'ⓣ': 't',
+            'ⓤ': 'u', 'ⓥ': 'v', 'ⓦ': 'w', 'ⓧ': 'x', 'ⓨ': 'y', 'ⓩ': 'z',
+            '①': '1', '②': '2', '③': '3', '④': '4', '⑤': '5', '⑥': '6', '⑦': '7', '⑧': '8', '⑨': '9', '⑩': '0',
+            '❶': '1', '❷': '2', '❸': '3', '❹': '4', '❺': '5', '❻': '6', '❼': '7', '❽': '8', '❾': '9', '❿': '0',
+            '➀': '1', '➁': '2', '➂': '3', '➃': '4', '➄': '5', '➅': '6', '➆': '7', '➇': '8', '➈': '9', '➉': '0',
+            '１': '1', '２': '2', '３': '3', '４': '4', '５': '5', '６': '6', '７': '7', '８': '8', '９': '9', '０': '0',
+            'Ａ': 'a', 'Ｂ': 'b', 'Ｃ': 'c', 'Ｄ': 'd', 'Ｅ': 'e', 'Ｆ': 'f', 'Ｇ': 'g', 'Ｈ': 'h', 'Ｉ': 'i', 'Ｊ': 'j',
+            'Ｋ': 'k', 'Ｌ': 'l', 'Ｍ': 'm', 'Ｎ': 'n', 'Ｏ': 'o', 'Ｐ': 'p', 'Ｑ': 'q', 'Ｒ': 'r', 'Ｓ': 's', 'Ｔ': 't',
+            'Ｕ': 'u', 'Ｖ': 'v', 'Ｗ': 'w', 'Ｘ': 'x', 'Ｙ': 'y', 'Ｚ': 'z',
+            'ａ': 'a', 'ｂ': 'b', 'ｃ': 'c', 'ｄ': 'd', 'ｅ': 'e', 'ｆ': 'f', 'ｇ': 'g', 'ｈ': 'h', 'ｉ': 'i', 'ｊ': 'j',
+            'ｋ': 'k', 'ｌ': 'l', 'ｍ': 'm', 'ｎ': 'n', 'ｏ': 'o', 'ｐ': 'p', 'ｑ': 'q', 'ｒ': 'r', 'ｓ': 's', 'ｔ': 't',
+            'ｕ': 'u', 'ｖ': 'v', 'ｗ': 'w', 'ｘ': 'x', 'ｙ': 'y', 'ｚ': 'z',
+            'ᴀ': 'a', 'ʙ': 'b', 'ᴄ': 'c', 'ᴅ': 'd', 'ᴇ': 'e', 'ꜰ': 'f', 'ɢ': 'g', 'ʜ': 'h', 'ɪ': 'i', 'ᴊ': 'j',
+            'ᴋ': 'k', 'ʟ': 'l', 'ᴍ': 'm', 'ɴ': 'n', 'ᴏ': 'o', 'ᴘ': 'p', 'ǫ': 'q', 'ʀ': 'r', 'ꜱ': 's', 'ᴛ': 't',
+            'ᴜ': 'u', 'ᴠ': 'v', 'ᴡ': 'w', 'x': 'x', 'ʏ': 'y', 'ᴢ': 'z',
+            'а': 'a', 'ә': 'a', 'б': 'b', 'в': 'v', 'г': 'g', 'ғ': 'gh', 'д': 'd', 'е': 'e', 'ё': 'e', 'ж': 'zh',
+            'з': 'z', 'и': 'i', 'й': 'y', 'к': 'k', 'қ': 'q', 'л': 'l', 'м': 'm', 'н': 'n', 'ң': 'ng', 'о': 'o',
+            'ө': 'o', 'п': 'p', 'р': 'r', 'с': 's', 'т': 't', 'у': 'u', 'ұ': 'u', 'ү': 'u', 'ф': 'f', 'х': 'kh',
+            'һ': 'h', 'ц': 'ts', 'ч': 'ch', 'ш': 'sh', 'щ': 'shch', 'ъ': '', 'ы': 'y', 'і': 'i', 'ь': '', 'э': 'e',
+            'ю': 'yu', 'я': 'ya'
+        };
+
+        // 汉字到拼音映射（常用脏话相关）
+        const PINYIN_MAP = {
+            '傻': ['sha'], '煞': ['sha'], '沙': ['sha'], '洒': ['sa'], '莎': ['sha'], '砂': ['sha'], '儍': ['sha'],
+            '逼': ['bi'], '屄': ['bi'], '比': ['bi'], '壁': ['bi'],
+            '二': ['er'], '2': ['er'],
+            '脑': ['nao'], '残': ['can'], '智': ['zhi'], '障': ['zhang'],
+            '弱': ['ruo'], '废': ['fei'], '物': ['wu'], '低': ['di'], '能': ['neng'],
+            '变': ['bian'], '态': ['tai'], '神': ['shen'], '经': ['jing'], '病': ['bing'],
+            '妈': ['ma'], '的': ['de'], '草': ['cao'], '操': ['cao'], '日': ['ri'],
+            '泥': ['ni'], '马': ['ma'], '你': ['ni'], '狗': ['gou'],
+            '滚': ['gun'], '蛋': ['dan'], '开': ['kai'], '死': ['si'], '全': ['quan'], '家': ['jia'],
+            '该': ['gai'], '王': ['wang'], '八': ['ba'], '东': ['dong'], '西': ['xi'],
+            '娘': ['niang'], '养': ['yang'], '畜': ['chu'], '生': ['sheng'], '禽': ['qin'], '兽': ['shou'],
+            '混': ['hun'], '龟': ['gui'], '孙': ['sun'], '婊': ['biao'], '子': ['zi'],
+            '贱': ['jian'], '人': ['ren'], '砸': ['za'], '骚': ['sao'], '货': ['huo'],
+            '破': ['po'], '鞋': ['xie'], '表': ['biao'], '鸡': ['ji'], '巴': ['ba'],
+            '吧': ['ba'], '扒': ['ba'], '掰': ['bai'], '伯': ['bo'], '妓': ['ji'],
+            '嫖': ['piao'], '娼': ['chang'], '约': ['yue'], '炮': ['pao'],
+            '裸': ['luo'], '聊': ['liao'], '情': ['qing'], '色': ['se'],
+            '卖': ['mai'], '淫': ['yin'], '打': ['da'], '友': ['you'], '搞': ['gao'],
+            '去': ['qu'], '赶': ['gan'], '紧': ['jin'], '早': ['zao'], '点': ['dian'],
+            '远': ['yuan'], '出': ['chu'], '给': ['gei'], '我': ['wo'], '杀': ['sha'],
+            '弄': ['nong'], '打': ['da'], '砍': ['kan'], '捅': ['tong'], '烧': ['shao'],
+            '淹': ['yan'], '活': ['huo'], '埋': ['mai'], '吃': ['chi'], '大': ['da'],
+            '便': ['bian'], '喝': ['he'], '尿': ['niao'], '屁': ['pi'], '舔': ['tian'],
+            '肛': ['gang'], '交': ['jiao'], '口': ['kou'], '性': ['xing'], '自': ['zi'],
+            '慰': ['wei'], '手': ['shou'], '撸': ['lu'], '管': ['guan'], '飞': ['fei'],
+            '机': ['ji'], '吹': ['chui'], '箫': ['xiao'], '干': ['gan'], '插': ['cha'],
+            '卖': ['mai'], '崽': ['zai'], '羔': ['gao'], '儿': ['er'], '操': ['cao'],
+            '生': ['sheng'], '驴': ['lv'], '猪': ['zhu'], '杂': ['za'], '碎': ['sui'],
+            '婢': ['bi'], '格': ['ge'], '骨': ['gu'], '胚': ['pei'], '浪': ['lang'],
+            '荡': ['dang'], '狐': ['hu'], '狸': ['li'], '精': ['jing'], '臭': ['chou'],
+            '要': ['yao'], '脸': ['lian'], '无': ['wu'], '耻': ['chi'], '徒': ['tu'],
+            '小': ['xiao'], '卑鄙': ['beibi'], '下': ['xia'], '流': ['liu'], '龌': ['wo'],
+            '龊': ['chuo'], '恶': ['e'], '心': ['xin'], '死': ['si'], '暴': ['bao'],
+            '狠': ['hen'], '揍': ['zou'], '痛': ['tong'], '扁': ['bian'], '折': ['zhe'],
+            '磨': ['mo'], '虐': ['nue'], '摧': ['cui'], '残': ['can'], '蹂': ['rou'],
+            '躏': ['lin'], '诅': ['zu'], '咒': ['zhou'], '祝': ['zhu'], '盼': ['pan'],
+            '不': ['bu'], '得': ['de'], '好': ['hao'], '罪': ['zui'], '应': ['ying'],
+            '万': ['wan'], '余': ['yu'], '辜': ['gu'], '烂': ['lan'], '透': ['tou'],
+            '救': ['jiu'], '药': ['yao'], '彻': ['che'], '底': ['di'], '翘': ['qiao'],
+            '翘': ['qiao'], '奶': ['nai'], '姥': ['lao'], '爷': ['ye'], '祖': ['zu'],
+            '宗': ['zong'], '十': ['shi'], '八': ['ba'], '代': ['dai'], '活': ['huo'],
+            '该': ['gai'], '罪有应得': ['zuiyouyingde'], '烂透了': ['lantoule'],
+            '没救了': ['meijiule'], '完蛋了': ['wandanle'], '死定了': ['sidingle'],
+            '死翘翘': ['siqiaoqiao'], '无可救药': ['wukejjiuyao'], '无药可救': ['wuyaokejiu'],
+            '死有余辜': ['siyouyugu'], '罪该万死': ['zuigaiwansi'], '不得好死': ['budehaosi'],
+            '该死的': ['gaiside'], '王八蛋': ['wangbadian'], '狗娘养的': ['guniangyangde'],
+            '婊子养的': ['biaoziyangde'], '猪狗不如': ['zhugouburu'],
+            '操你妈': ['caonima'], '草你妈': ['caonima'], '日你妈': ['rinima'],
+            '他妈的': ['tamade'], '她妈的': ['tamade'], '你妈的': ['nimade'],
+            '你妈逼': ['nimabi'], '你妈屄': ['nimabi'], '你妈死了': ['nimasile'],
+            '你全家死了': ['niquanjiasile'], '你祖宗十八代': ['nizuzongshibadai']
+        };
+
+        function normalizeForCheck(text) {
+            if (!text) return '';
+            let normalized = text.toLowerCase();
+            
+            // 同形字转换（西里尔字母/希腊字母等→拉丁字母）
+            for (const [cyrillic, latin] of Object.entries(HOMOGLYPH_MAP)) {
+                normalized = normalized.split(cyrillic).join(latin);
+            }
+            
+            // 移除所有非字母数字非中文汉字的字符
+            normalized = normalized.replace(/[^a-z0-9\u4e00-\u9fff]/g, '');
+            
+            return normalized;
+        }
+
+        function convertToPinyin(text) {
+            if (!text) return '';
+            let pinyin = '';
+            for (const char of text) {
+                if (PINYIN_MAP[char]) {
+                    pinyin += PINYIN_MAP[char][0];
+                } else if (/[a-z0-9]/.test(char)) {
+                    pinyin += char;
+                } else {
+                    pinyin += char;
+                }
+            }
+            return pinyin;
+        }
+
+        const PROFANITY_DATA = PROFANITY_WORDS.map(word => ({
+            original: word,
+            normalized: normalizeForCheck(word),
+            pinyin: convertToPinyin(word).toLowerCase()
+        })).filter(item => item.normalized.length >= 1);
+
+        function checkProfanity(text) {
+            if (!text || text.trim().length === 0) return null;
+            
+            const normalized = normalizeForCheck(text);
+            const pinyin = convertToPinyin(text).toLowerCase();
+            
+            for (const item of PROFANITY_DATA) {
+                if (normalized.includes(item.normalized)) {
+                    return item.original;
+                }
+                if (item.pinyin && item.pinyin.length >= 1 && pinyin.includes(item.pinyin)) {
+                    return item.original;
+                }
+            }
+            
+            for (const item of PROFANITY_DATA) {
+                if (item.normalized.length >= 2 && fuzzyMatch(normalized, item.normalized)) {
+                    return item.original;
+                }
+                if (item.pinyin && item.pinyin.length >= 2 && fuzzyMatch(pinyin, item.pinyin)) {
+                    return item.original;
+                }
+            }
+            
+            return null;
+        }
+
+        function fuzzyMatch(text, pattern) {
+            if (!text || !pattern || pattern.length > text.length) return false;
+            if (text.includes(pattern)) return true;
+            
+            let patternIdx = 0;
+            let lastMatchPos = -1;
+            for (let i = 0; i < text.length && patternIdx < pattern.length; i++) {
+                if (text[i] === pattern[patternIdx]) {
+                    lastMatchPos = i;
+                    patternIdx++;
+                } else if (patternIdx > 0 && lastMatchPos !== -1) {
+                    if (i - lastMatchPos > 3) {
+                        patternIdx = 0;
+                        lastMatchPos = -1;
+                    }
+                }
+            }
+            return patternIdx === pattern.length;
+        }
+
+        // 已捞漂流瓶本地存储
+        const PICKED_BOTTLES_KEY = 'drift_picked_bottles';
+        function getPickedBottleSet() {
+            try {
+                const arr = JSON.parse(localStorage.getItem(PICKED_BOTTLES_KEY) || '[]');
+                return new Set(arr);
+            } catch (e) {
+                return new Set();
+            }
+        }
+        function addPickedBottleId(id) {
+            const set = getPickedBottleSet();
+            set.add(id);
+            try {
+                localStorage.setItem(PICKED_BOTTLES_KEY, JSON.stringify([...set]));
+            } catch (e) {
+                console.warn('[本地存储] 保存已捞漂流瓶失败:', e);
+            }
+        }
+        function getPickedBottleCount() {
+            return getPickedBottleSet().size;
+        }
+
+        async function fetchFromGitHub(path) {
+              const url = `https://up-8ag.pages.dev/${path}`;
+            console.log(`[读取] 开始从代理获取数据: ${path}`);
+            try {
+                const res = await fetch(url);
+                if (res.status === 404) {
+                    console.log(`[读取] 数据不存在 (404): ${path}`);
+                    return null;
+                }
+                if (!res.ok) {
+                    console.error(`[读取] 请求失败: ${path}, 状态码: ${res.status}`);
+                    throw new Error(`读取失败: ${res.status}`);
+                }
+                const data = await res.json();
+                const count = Array.isArray(data) ? data.length : 'object';
+                console.log(`[读取] 成功获取: ${path} (${count}条)`);
+                return data;
+            } catch (e) { console.error(`[读取] 异常: ${path}`, e); throw e; }
+        }
+
+        async function saveToGitHub(path, data, message, retries = 3) { 
+            const apiUrl = `https://api.github.com/repos/${CONFIG.owner}/${CONFIG.repo}/contents/${path}`;
+            const headers = { 
+                'Authorization': `Bearer ${CONFIG.token}`,
+                'Accept': 'application/vnd.github.v3+json',
+                'Content-Type': 'application/json'
+            };
+            const dataSize = Array.isArray(data) ? data.length : '?';
+            console.log(`[写入] 开始上传: ${path} (${dataSize}条) | 提交信息: "${message}" | 最大重试: ${retries}次`);
+            for (let attempt = 1; attempt <= retries; attempt++) {
+                if (attempt > 1) console.log(`[写入] 第${attempt}次重试: ${path}`);
+                let sha = null;
+                try {
+                    const res = await fetch(apiUrl + `?ref=${CONFIG.branch}`, { headers });
+                    if (res.ok) { 
+                        const fileInfo = await res.json(); 
+                        sha = fileInfo.sha;
+                        console.log(`[写入] 获取到当前SHA: ${sha ? sha.substring(0,7)+'...' : 'null'}`);
+                    } else {
+                        console.log(`[写入] 获取SHA响应: ${res.status} (文件可能不存在)`);
+                    }
+                } catch(e) {
+                    console.warn(`[写入] 获取SHA时网络异常:`, e);
+                }
+                const contentStr = JSON.stringify(data, null, 2);
+                const contentBase64 = btoa(unescape(encodeURIComponent(contentStr)));
+                const body = { message, content: contentBase64, branch: CONFIG.branch };
+                if (sha) body.sha = sha;
+                console.log(`[写入] 正在PUT到GitHub API...`);
+                const putRes = await fetch(apiUrl, { 
+                    method: 'PUT', 
+                    headers, 
+                    body: JSON.stringify(body) 
+                });
+                if (putRes.ok) {
+                    console.log(`[写入] ✅ 上传成功: ${path}`);
+                    return true;
+                }
+                const errBody = await putRes.text().catch(() => '');
+                if (putRes.status === 409 && attempt < retries) {
+                    console.warn(`[写入] ⚠️ 冲突(409)，${500*attempt}ms后重试...`);
+                    await new Promise(r => setTimeout(r, 500 * attempt));
+                    continue;
+                }
+                console.error(`[写入] ❌ 上传失败 (HTTP ${putRes.status}): ${errBody}`);
+                throw new Error(`保存失败 (HTTP ${putRes.status}): ${errBody}`);
+            }
+        }
+
+        async function loadData() {
+            console.log('[加载] ====== 开始加载数据 ======');
+            try {
+                const [bottlesData, usersData] = await Promise.all([
+                    fetchFromGitHub(CONFIG.bottlesPath),
+                    fetchFromGitHub(CONFIG.usersPath)
+                ]);
+                bottles = bottlesData || [];
+                users = usersData || [];
+                console.log(`[加载] 数据加载完毕: 漂流瓶${bottles.length}个, 用户${users.length}个`);
+                
+                // 如果没有漂流瓶，添加一些初始测试数据
+                if (bottles.length === 0) {
+                    console.log('[加载] 漂流瓶为空，创建初始数据...');
+                    const initialBottles = [
+                        {
+                            id: 'bottle_initial_1',
+                            userId: 'system',
+                            message: '希望每个人都能找到自己的幸福！',
+                            createdAt: new Date().toISOString(),
+                            picked: false,
+                            pickedBy: null,
+                            pickedAt: null
+                        },
+                        {
+                            id: 'bottle_initial_2',
+                            userId: 'system',
+                            message: '今天天气真好，心情也跟着变好了！',
+                            createdAt: new Date().toISOString(),
+                            picked: false,
+                            pickedBy: null,
+                            pickedAt: null
+                        },
+                        {
+                            id: 'bottle_initial_3',
+                            userId: 'system',
+                            message: '漂流瓶真有趣，希望能收到陌生人的回复！',
+                            createdAt: new Date().toISOString(),
+                            picked: false,
+                            pickedBy: null,
+                            pickedAt: null
+                        }
+                    ];
+                    bottles = initialBottles;
+                    await saveToGitHub(CONFIG.bottlesPath, bottles, '添加初始漂流瓶');
+                    console.log('[加载] 初始漂流瓶已写入服务器');
+                }
+                
+                await initUser();
+                updateStats();
+                console.log('[加载] ====== 加载完成 ======');
+            } catch (error) {
+                console.error('[加载] ❌ 加载失败:', error);
+                showAlert('加载失败', '😢', '无法连接到服务器，请稍后重试\n' + error.message);
+            }
+        }
+
+        async function initUser() {
+            let user = localStorage.getItem('drift_user');
+            if (!user) {
+                user = {
+                    id: 'user_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9),
+                    name: '游客' + Math.floor(Math.random() * 10000),
+                    thrown: 0,
+                    picked: 0,
+                    history: []
+                };
+                localStorage.setItem('drift_user', JSON.stringify(user));
+                users.push(user);
+                console.log(`[用户] 创建新用户: ${user.name} (${user.id})`);
+                try { await saveToGitHub(CONFIG.usersPath, users, '添加新用户'); } catch(e) { console.warn('[用户] 保存新用户到服务器失败:', e); }
+            } else {
+                user = JSON.parse(user);
+                const existingUser = users.find(u => u.id === user.id);
+                if (existingUser) {
+                    user = existingUser;
+                    console.log(`[用户] 已有用户: ${user.name} (已扔${user.thrown}次, 已捞${user.picked}次)`);
+                } else {
+                    users.push(user);
+                    console.log(`[用户] 本地用户不在服务器, 同步到服务器: ${user.name}`);
+                    try { await saveToGitHub(CONFIG.usersPath, users, '添加新用户'); } catch(e) { console.warn('[用户] 同步用户到服务器失败:', e); }
+                }
+            }
+            currentUser = user;
+            userStats = {
+                thrown: user.thrown || 0,
+                picked: user.picked || 0
+            };
+            console.log(`[用户] 当前用户: ${currentUser.name} | 今日可扔: ${dailyRemaining('throw')} | 今日可捞: ${dailyRemaining('pick')}`);
+            updateRecordList();
+        }
+
+        function updateStats() {
+            totalBottles.textContent = bottles.length;
+            const myBottleCount = bottles.filter(b => b.userId === currentUser.id).length;
+            myBottles.textContent = myBottleCount;
+            dailyThrow.textContent = dailyRemaining('throw');
+            dailyPick.textContent = dailyRemaining('pick');
+        }
+
+        function updateRecordList() {
+            const history = currentUser.history || [];
+            if (history.length === 0) {
+                recordList.innerHTML = `
+                    <div class="empty-state">
+                        <div class="emoji">📝</div>
+                        <div class="message">暂无记录</div>
+                        <div class="hint">开始写漂流瓶或捞漂流瓶吧</div>
+                    </div>
+                `;
+                return;
+            }
+
+            const records = [...history].reverse();
+            recordList.innerHTML = records.map(entry => {
+                const bottle = bottles.find(b => b.id === entry.bottleId);
+                const isThrow = entry.type === 'throw';
+                const type = isThrow ? '我扔的漂流瓶' : '我捞的漂流瓶';
+                const color = isThrow ? '#e02f2f' : '#4caf50';
+                const date = new Date(entry.timestamp).toLocaleString('zh-CN');
+                const msg = bottle ? bottle.message : '(内容已失效)';
+                return `
+                    <div style="background: white; border-radius: 16px; padding: 16px; margin-bottom: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.05);">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                            <span style="font-weight: 600; color: ${color};">${type}</span>
+                            <span style="font-size: 0.8rem; color: #999;">${date}</span>
+                        </div>
+                        <div style="background: #f9f9f9; border-radius: 12px; padding: 12px; font-size: 0.95rem; line-height: 1.4;">
+                            ${escapeHtml(msg)}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function showAlert(title, emoji, message) {
+            alertTitle.textContent = title;
+            alertEmoji.textContent = emoji;
+            alertMessage.textContent = message;
+            customAlertModal.classList.add('show');
+        }
+
+        function hideAlert() {
+            customAlertModal.classList.remove('show');
+        }
+
+        async function throwBottle() {
+            if (dailyRemaining('throw') <= 0) {
+                console.log('[扔瓶子] ⛔ 今日次数已用尽');
+                showAlert('提示', '⚠️', `今天扔漂流瓶次数已用尽（上限${DAILY_LIMIT.throw}次），明天0点刷新`);
+                return;
+            }
+            const message = messageInput.value.trim();
+            if (!message) {
+                showAlert('提示', '⚠️', '请输入漂流瓶内容');
+                return;
+            }
+            if (message.length < 5) {
+                showAlert('提示', '⚠️', '漂流瓶内容至少需要5个字');
+                return;
+            }
+            const badWord = checkProfanity(message);
+            if (badWord) {
+                console.log(`[扔瓶子] ⛔ 检测到敏感词: "${badWord}"`);
+                showAlert('内容不当', '🚫', `漂流瓶包含不当语言「${badWord}」\n请友善表达，让温暖传递给陌生人 🌊`);
+                return;
+            }
+
+            console.log('[扔瓶子] ====== 开始扔漂流瓶 ======');
+            setButtonLoading(submitThrowBtn, true);
+
+            const newBottle = {
+                id: 'bottle_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9),
+                userId: currentUser.id,
+                message: message,
+                createdAt: new Date().toISOString(),
+                picked: false,
+                pickedBy: null,
+                pickedAt: null
+            };
+            bottles.push(newBottle);
+            console.log(`[扔瓶子] 瓶子已创建: ${newBottle.id}, 内容: "${message.substring(0,20)}..."`);
+
+            // 立即更新本地状态
+            currentUser.thrown = (currentUser.thrown || 0) + 1;
+            currentUser.history = currentUser.history || [];
+            currentUser.history.push({
+                type: 'throw',
+                bottleId: newBottle.id,
+                timestamp: new Date().toISOString()
+            });
+            localStorage.setItem('drift_user', JSON.stringify(currentUser));
+            userStats.thrown = currentUser.thrown;
+            incDaily('throw');
+            updateStats();
+            updateRecordList();
+            console.log('[扔瓶子] 本地数据已更新, 剩余今日次数:', dailyRemaining('throw'));
+
+            messageInput.value = '';
+            throwModal.classList.remove('show');
+
+            // 立刻弹成功，后台默默上传
+            console.log('[扔瓶子] ✅ 立即显示成功, 后台开始上传...');
+            showAlert('成功', '🎉', '漂流瓶已成功扔出！');
+            setButtonLoading(submitThrowBtn, false);
+
+            // 后台静默上传
+            (async () => {
+                try {
+                    console.log('[扔瓶子] 后台: 开始上传瓶子数据到GitHub...');
+                    await saveToGitHub(CONFIG.bottlesPath, bottles, '添加新漂流瓶');
+                    console.log('[扔瓶子] 后台: 瓶子上传完成, 开始上传用户数据...');
+                    await saveToGitHub(CONFIG.usersPath, users, '更新用户数据');
+                    console.log('[扔瓶子] 后台: ✅ 全部上传完成');
+                } catch (err) {
+                    console.error('[扔瓶子] 后台: ❌ 上传失败:', err);
+                }
+            })();
+        }
+
+        async function pickBottle() {
+            if (dailyRemaining('pick') <= 0) {
+                console.log('[捞瓶子] ⛔ 今日次数已用尽');
+                showAlert('提示', '⚠️', `今天捞漂流瓶次数已用尽（上限${DAILY_LIMIT.pick}次），明天0点刷新`);
+                return;
+            }
+            console.log('[捞瓶子] ====== 开始捞漂流瓶 ======');
+            pickModal.classList.add('show');
+            pickContent.innerHTML = `<span class="spinner"></span><span>正在捞取漂流瓶...</span>`;
+            pickButtons.style.display = 'none';
+
+            setTimeout(async () => {
+                try {
+                    // 排除自己的瓶子 + 排除本地存储中已捞过的瓶子
+                    const pickedIds = getPickedBottleSet();
+                    const availableBottles = bottles.filter(b => b.userId !== currentUser.id && !pickedIds.has(b.id));
+                    console.log(`[捞瓶子] 总瓶子数: ${bottles.length}, 排除自己(${bottles.length - availableBottles.length - bottles.filter(b=>b.userId===currentUser.id && pickedIds.has(b.id)).length}个)和已捞过(${pickedIds.size}个)后: ${availableBottles.length}个`);
+
+                    if (bottles.length === 0) {
+                        console.log('[捞瓶子] 🌊 海面上没有任何漂流瓶');
+                        pickContent.innerHTML = `
+                            <div class="empty-state">
+                                <div class="emoji">🌊</div>
+                                <div class="message">海面上没有漂流瓶</div>
+                                <div class="hint">先去写一个漂流瓶吧</div>
+                            </div>
+                        `;
+                        pickButtons.style.display = 'flex';
+                        return;
+                    }
+
+                    if (availableBottles.length === 0) {
+                        const serverNonOwnBottles = bottles.filter(b => b.userId !== currentUser.id);
+                        const allServerBottlesPicked = serverNonOwnBottles.length > 0 && serverNonOwnBottles.every(b => pickedIds.has(b.id));
+
+                        if (allServerBottlesPicked) {
+                            console.log('[捞瓶子] 🏖️ 所有漂流瓶都已捞完');
+                            pickContent.innerHTML = `
+                                <div class="empty-state">
+                                    <div class="emoji">🏖️</div>
+                                    <div class="message">您已把漂流瓶捞完，无法继续捕捞</div>
+                                    <div class="hint">等待新的漂流瓶出现后再来捞吧~</div>
+                                </div>
+                            `;
+                        } else {
+                            console.log('[捞瓶子] 🏝️ 没有可捞的漂流瓶（都是自己的）');
+                            pickContent.innerHTML = `
+                                <div class="empty-state">
+                                    <div class="emoji">🏝️</div>
+                                    <div class="message">当前没有可以捞的漂流瓶</div>
+                                    <div class="hint">等待别人扔的漂流瓶出现吧~</div>
+                                </div>
+                            `;
+                        }
+                        pickButtons.style.display = 'flex';
+                        return;
+                    }
+
+                    const randomIndex = Math.floor(Math.random() * availableBottles.length);
+                    const pickedBottle = availableBottles[randomIndex];
+                    console.log(`[捞瓶子] 捞到瓶子: ${pickedBottle.id}, 发布者: ${pickedBottle.userId}, 内容: "${pickedBottle.message.substring(0,20)}..."`);
+
+                    // 记录到本地存储（去重关键步骤）
+                    addPickedBottleId(pickedBottle.id);
+
+                    // 本地记录（不写服务器）
+                    currentUser.picked = (currentUser.picked || 0) + 1;
+                    currentUser.history = currentUser.history || [];
+                    currentUser.history.push({
+                        type: 'pick',
+                        bottleId: pickedBottle.id,
+                        timestamp: new Date().toISOString()
+                    });
+                    localStorage.setItem('drift_user', JSON.stringify(currentUser));
+
+                    userStats.picked = currentUser.picked;
+                    incDaily('pick');
+                    updateStats();
+                    updateRecordList();
+                    console.log('[捞瓶子] 本地记录已更新, 剩余今日次数:', dailyRemaining('pick'));
+
+                    pickContent.innerHTML = `
+                        <div style="background: #f9f9f9; border-radius: 20px; padding: 20px; margin-bottom: 20px;">
+                            <p style="font-size: 1.1rem; line-height: 1.5; text-align: center;">${escapeHtml(pickedBottle.message)}</p>
+                        </div>
+                        <div style="text-align: center; font-size: 0.9rem; color: #666;">
+                            <p>来自陌生人的漂流瓶</p>
+                            <p style="margin-top: 4px;">${new Date(pickedBottle.createdAt).toLocaleString('zh-CN')}</p>
+                        </div>
+                    `;
+                    pickButtons.style.display = 'flex';
+                    console.log('[捞瓶子] ✅ 展示完成');
+                } catch (error) {
+                    console.error('[捞瓶子] ❌ 失败:', error);
+                    pickContent.innerHTML = `
+                        <div class="empty-state">
+                            <div class="emoji">😢</div>
+                            <div class="message">捞漂流瓶失败</div>
+                            <div class="hint">${error.message}</div>
+                        </div>
+                    `;
+                    pickButtons.style.display = 'flex';
+                }
+            }, 1000);
+        }
+
+        // 记录弹窗
+        recordFloatBtn.addEventListener('click', function() {
+            updateRecordList();
+            recordModal.classList.add('show');
+        });
+
+        closeRecordModal.addEventListener('click', function() {
+            recordModal.classList.remove('show');
+        });
+
+        recordModal.addEventListener('click', function(e) {
+            if (e.target === recordModal) {
+                recordModal.classList.remove('show');
+            }
+        });
+
+        // 写漂流瓶
+        btnThrow.addEventListener('click', function() {
+            throwModal.classList.add('show');
+        });
+
+        closeThrowModal.addEventListener('click', function() {
+            throwModal.classList.remove('show');
+            messageInput.value = '';
+        });
+
+        cancelThrowBtn.addEventListener('click', function() {
+            throwModal.classList.remove('show');
+            messageInput.value = '';
+        });
+
+        submitThrowBtn.addEventListener('click', throwBottle);
+
+        // 捞漂流瓶
+        btnPick.addEventListener('click', pickBottle);
+
+        closePickModal.addEventListener('click', function() {
+            pickModal.classList.remove('show');
+        });
+
+        closePickBtn.addEventListener('click', function() {
+            pickModal.classList.remove('show');
+        });
+
+        pickAnotherBtn.addEventListener('click', pickBottle);
+
+        // 弹窗关闭
+        alertConfirmBtn.addEventListener('click', hideAlert);
+        closeAlertModal.addEventListener('click', hideAlert);
+
+        // 漂流瓶点击效果
+        bottleImage.addEventListener('click', function() {
+            this.style.transform = 'scale(0.95)';
+            setTimeout(() => {
+                this.style.transform = 'scale(1)';
+            }, 200);
+        });
+
+        // 初始化
+        loadData();
+    })();
+</script>
+</body>
+</html>
